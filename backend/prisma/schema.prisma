@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Car {
+  id          String     @id @default(uuid())
+  VIN         String
+  VRP         String?
+  manufacturer     String?
+  model       String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  fuel        String
+  capacity    String
+  engineCode  String?
+  production  DateTime
+  owner       Customer  @relation(fields: [customerId], references: [id])
+  customerId  String
+  serviceRecords  ServiceRecord[]
+}
+
+model Customer {
+  id           String       @id @default(uuid())
+  name         String
+  surname      String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  phone        String
+  email        String?
+  cars         Car[]
+  incoices     Invoice[]
+
+}
+
+model Invoice {
+  id           String       @id @default(uuid())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  maturity     DateTime
+  customer     Customer     @relation(fields: [customerId], references: [id])
+  customerId  String
+  servisrecord  ServiceRecord?
+}
+
+model ServiceRecord {
+  id           String       @id @default(uuid())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  acceptedAt   DateTime     @default(now()) 
+  description  String
+  kmCount      String
+  invoice      Invoice? @relation(fields: [invoiceId], references: [id])
+  invoiceId    String?
+  accepted     Technician @relation(fields: [acceptedId], references: [id])
+  acceptedId   String
+  techniciansConnections  TechnicianRecord[]
+  carId        String
+  car          Car @relation(fields: [carId], references: [id])
+  parts        Part[]
+}
+
+model Technician {
+  id           String       @id @default(uuid())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  name         String
+  surname      String
+  phone        String?
+  email        String?
+  acceptedRecords ServiceRecord[]
+  recordsConnections TechnicianRecord[]
+  username      String      @unique
+  passwordHash String
+  passwordSalt String
+}
+
+model Part {
+  id           String       @id @default(uuid())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  name         String
+  price        String
+  partNumber   String?
+  description  String?
+  serviceRecordId String
+  serviceRecord ServiceRecord @relation(fields: [serviceRecordId], references: [id])
+}
+
+//TOOD: comment out
+model TechnicianRecord {
+  id           String       @id @default(uuid())
+  createdAt    DateTime     @default(now())
+  technician   Technician   @relation(fields: [technicianId], references: [id])
+  technicianId String
+  serviceRecord ServiceRecord @relation(fields: [serviceRecordId], references: [id])
+  serviceRecordId String
+}
+
+//model RecordPart {
+//  id           String       @id @default(uuid())
+//  createdAt    DateTime     @default(now())
+//  deletedAt    DateTime?
+//  serviceRecord ServiceRecord @relation(fields: [serviceRecordId], references: [id])
+//  serviceRecordId String
+//  part         Part         @relation(fields: [partId], references: [id])
+//  partId       String
+//}

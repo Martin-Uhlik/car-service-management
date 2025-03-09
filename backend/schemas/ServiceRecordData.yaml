@@ -1,0 +1,20 @@
+ServiceRecordData:    
+  type: object
+  properties:
+    description:
+      type: string
+      required: true
+    kmCount:
+      type: string
+      required: true
+    #TODO:
+    #invoice:
+    #  required: true
+    #  oneOf:
+    #    - type: null
+    #    - type: object
+    #      note: not implemented
+    #      properties:
+    #        maturity:
+    #          type: string
+    #          required: true

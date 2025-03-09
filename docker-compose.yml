@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  web:
+    build: ./frontend
+
+    ports:
+      - 127.0.0.1:3000:3000
+    environment:
+      BACKEND: backend
+
+  database:
+    build: ./backend
+    hostname: backend
+    ports:
+      - 127.0.0.1:4000:4000

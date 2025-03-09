@@ -1,0 +1,16 @@
+CustomerData:
+  type: object
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+      required: true
+    surname:
+      type: string
+      required: true
+    phone:
+      type: string
+      required: false
+    email:
+      type: string
+      required: true

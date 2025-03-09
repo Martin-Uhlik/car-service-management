@@ -1,0 +1,10 @@
+LoginData:
+  type: object
+  additionalProperties: false
+  properties:
+    username:
+      type: string
+      required: true
+    password:
+      type: string
+      required: true

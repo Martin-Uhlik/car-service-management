@@ -1,0 +1,32 @@
+CarData:
+  type: object
+  additionalProperties: false
+  properties:
+    VIN:
+      type: string
+      required: true
+    VRP:
+      type: string
+      required: true
+    manufacturer:
+      type: string
+      required: true
+    model:
+      type: string
+      required: true
+    fuel:
+      type: string
+      required: true
+    capacity:
+      type: string
+      required: true
+    engineCode:
+      type: string
+      required: true
+    production:
+      type: string
+      format: date
+      required: true
+    customerId:
+      type: string
+      required: true

@@ -1,0 +1,939 @@
+openapi: 3.0.1
+info:
+  title: ServiceBook API
+  description: >
+    Each API endpoint returns a {error, data} json object.
+    In every response one of these values is null and the other isn't.
+    Only successful responses are documented here.
+  version: 1.0.0
+
+servers:
+- url: http://localhost:4000/
+
+tags:
+- name: technicians 
+- name: customers
+- name: cars
+- name: service-records
+- name: parts
+
+paths:
+  /technicians/login:
+    post:
+      tags:
+      - technicians
+      summary: 
+        Login as a technician with a username and a password.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginData'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/LoginResponse'
+    
+  /technicians/:
+    get:
+      tags:
+        - technicians
+      summary: List all technicians (admin only)
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TechnicianInformation'
+    post:
+      tags:
+      - technicians
+      summary: 
+        Register a new technician with a username and a password. (admin only)
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterData'
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/TechnicianInformation'
+
+  /technicians/{technicianId}:
+    patch:
+      tags:
+      - technicians
+      summary: Patch technician information (admin only)
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: technicianId
+          schema:
+            type: string
+            required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterData__patch'
+      responses:
+        200:
+          description: successful operation
+          content: 
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      const: null
+                    data:
+                      $ref: '#/components/schemas/TechnicianInformation'
+    delete:
+      tags:
+      - technicians
+      summary: Delete technician information (admin only)
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: technicianId
+          schema:
+            type: string
+            required: true
+      responses:
+        200:
+          description: successful operation
+          content: 
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      const: null
+                    data:
+                      state:
+                        type: string
+   
+  /technicians/{technicianId}/self-patch:
+    patch:
+      tags:
+      - technicians
+      summary: Patch technician information (logged in technician can patch themselves)
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: technicianId
+          schema:
+            type: string
+            required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDataSelfPatch'
+      responses:
+        200:
+          description: successful operation
+          content: 
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      const: null
+                    data:
+                      $ref: '#/components/schemas/TechnicianInformation'
+  /customers:
+    get:
+      summary: List all customers
+      tags:
+        - customers
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Customer'
+    post:
+      summary: Add a customer
+      tags:
+        - customers
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerData'
+        required: true
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                      $ref: '#/components/schemas/Customer'
+  
+  /customers/{customerId}:
+    patch:
+      summary: Patch a customer
+      tags:
+        - customers
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: customerId
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerData__patch'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/Customer'
+    get:
+      summary: Get a customer by id
+      tags:
+        - customers
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: customerId
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/Customer'
+  
+  /customers/{customerId}/create-auth-token:
+    post:
+      summary: Create an auth token for a customer.
+      description: customer authToken can be used for access to resources of that given customer
+      tags:
+        - customers
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: customerId
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    type: object
+                    properties:
+                      authToken:
+                        type: string
+                        required: true
+
+  /customers/{customerId}/cars:
+    get:
+      summary: Get all cars this customer owns.
+      tags:
+        - cars
+      parameters:
+        - $ref: '#/components/parameters/authTokenMaybeCustomer'
+        - in: path
+          name: customerId
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Car'
+
+  /customers/{customerId}/serviceRecords:
+    get:
+      summary: Get all service-records related to this customer.
+      tags:
+        - service-records
+      parameters:
+        - $ref: '#/components/parameters/authTokenMaybeCustomer'
+        - in: path
+          name: customerId
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceRecord'
+
+  /cars:
+    get:
+      tags:
+      - cars
+      summary: Get list of all cars
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Car'
+    post:
+      tags:
+      - cars
+      summary: Add a car
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarData'
+        required: true
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/Car'
+  
+  /cars/{carId}:
+    get:
+      tags:
+      - cars
+      summary: Get a car by id
+      parameters:
+        - $ref: '#/components/parameters/authTokenMaybeCustomer'
+        - in: path
+          name: carId
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/Car'
+    patch:
+      tags:
+        - cars
+      summary: Patch car information
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: carId
+          schema:
+            type: string
+            required: true
+      requestBody:
+        description: Car object that needs to be pathed
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarData__patch'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content: 
+             application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/Car'
+  #/invoices:
+  #  get:
+  #    tags:
+  #    - invoices
+  #    summary: Get list of all invoices
+  #    parameters:
+  #      - $ref: '#/components/parameters/authToken'
+  #    responses:
+  #      200:
+  #        description: successful operation
+  #        content:
+  #          application/json:
+  #           schema:
+  #              type: object
+  #              properties:
+  #                error: 
+  #                  type: null
+  #                data:
+  #                  type: array
+  #                  items:
+  #                    $ref: '#/components/schemas/Invoice'
+  #  post:
+  #    tags:
+  #    - invoices
+  #    summary: Add a invoice
+  #    parameters:
+  #      - $ref: '#/components/parameters/authToken'
+  #    requestBody:
+  #      description: Invoice object that needs to be added to the service
+  #      content:
+  #        application/json:
+  #          schema:
+  #            $ref: '#/components/schemas/InvoiceData'
+  #      required: true
+  #    responses:
+  #      200:
+  #        description: successful operation
+  #        content: 
+  #          application/json:
+  #            schema:
+  #              type: object
+  #              properties:
+  #                error: 
+  #                  type: null
+  #                data:
+  #                  $ref: '#/components/schemas/Invoice'
+  #
+  #/invoices/{invoiceId}:
+  #  patch:
+  #    tags:
+  #      - invoices
+  #    summary: Patch invoice information
+  #    parameters:
+  #      - $ref: '#/components/parameters/authToken'
+  #      - in: path
+  #        name: invoiceId
+  #        schema:
+  #          type: string
+  #          required: true
+  #    requestBody:
+  #      description: Invoice object that needs to be pathed
+  #      content:
+  #        application/json:
+  #          schema:
+  #            $ref: '#/components/schemas/InvoiceData'
+  #      required: true
+  #    responses:
+  #      200:
+  #        description: successful operation
+  #        content: 
+  #          application/json:
+  #            schema:
+  #              type: object
+  #              properties:
+  #                error: 
+  #                  type: null
+  #                data:
+  #                  $ref: '#/components/schemas/Invoice'
+  #
+  /cars/{carId}/service-records:
+    get:
+      tags:
+      - service-records
+      summary: Get list of all service records for this car
+      parameters:
+        - $ref: '#/components/parameters/authTokenMaybeCustomer'
+        - in: path
+          name: carId
+          schema:
+            type: string
+            required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ServiceRecord'
+    post:
+      tags:
+      - service-records
+      summary: Add a serviceRecord
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: carId
+          schema:
+            type: string
+            required: true
+      requestBody:
+        description: ServiceRecord object that needs to be added to the service
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRecordData'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/ServiceRecord'
+
+  /service-records/{serviceRecordId}:
+    get:
+      tags:
+        - service-records
+      summary: Get a specific service record
+      parameters:
+        - $ref: '#/components/parameters/authTokenMaybeCustomer'
+        - in: path
+          name: serviceRecordId
+          schema:
+            type: string
+            required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/ServiceRecord'
+    patch:
+      tags:
+        - service-records
+      summary: Patch a specific service record
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: serviceRecordId
+          schema:
+            type: string
+            required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartData__patch'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/ServiceRecord'
+  
+  /service-records/{serviceRecordId}/parts:
+    get:
+      tags:
+        - parts
+      summary: Get list of parts of this service record
+      parameters:
+        - $ref: '#/components/parameters/authTokenMaybeCustomer'
+        - in: path
+          name: serviceRecordId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: successful operation
+          content: 
+            application/json:
+             schema:
+                type: object
+                properties:
+                  error: 
+                    type: null
+                  data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Part'
+    post:
+      tags:
+      - parts
+      summary: Add a part to this service record
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: serviceRecordId
+          schema:
+            type: string
+            required: true
+      requestBody:
+        description: Part object that needs to be added to the service record
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartData'
+        required: true
+      responses:
+        201:
+          description: successful operation
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: null
+                  data:
+                    $ref: '#/components/schemas/Part'
+  
+  /parts/{partId}:
+    get:
+      tags:
+        - parts
+      summary: Get part information
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: partId
+          schema:
+            type: string
+            required: true
+      responses:
+        200:
+          description: successful operation
+          content: 
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      const: null
+                    data:
+                      $ref: '#/components/schemas/Part'
+    patch:
+      tags:
+        - parts
+      summary: Patch part information
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: partId
+          schema:
+            type: string
+            required: true
+      requestBody:
+        description: Part object that needs to be patched
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartData__patch'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content: 
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      const: null
+                    data:
+                      $ref: '#/components/schemas/Part'
+    delete:
+      tags:
+        - parts
+      summary: Delete part information
+      parameters:
+        - $ref: '#/components/parameters/authToken'
+        - in: path
+          name: partId
+          schema:
+            type: string
+            required: true
+      responses:
+        200:
+          description: successful operation
+          content: 
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      const: null
+                    data:
+                      state:
+                        type: string
+
+components:
+  parameters:
+    authToken:
+      in: query
+      name: authToken
+      description: authentication token obtained from /technicians/login
+      required: true
+      type: string
+    
+    authTokenMaybeCustomer:
+      in: query
+      name: authToken
+      description: authentication token obtained from /technicians/login or customers/{customerId}/create-auth-token
+      required: true
+      type: string
+
+  schemas:
+    # additional schemas from schema directory will be inserted here
+    #
+    # Each schema in /schemas directory also has a second variant generated called 
+    # SchemaName__patch. This variant has the same properties, but every property has 
+    # required set to false.
+
+    LoginResponse:
+      type: object
+      properties:
+        authToken:
+          type: string
+        name: 
+          type: string
+        surname:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+
+    TechnicianInformation:
+      type: object
+      properties:
+        name: 
+          type: string
+        surname:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+
+    Car:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        VIN:
+          type: string
+        VRP:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        fuel:
+          type: string
+        capacity:
+          type: string
+        engineCode:
+          type: string
+        production:
+          type: string
+          format: date
+        customerId:
+          type: string
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        surname:
+          tpye: String
+        createdAt:
+          type: string
+          format: date
+        updatedAt:
+          type: string
+          format: date
+        phone: 
+          type: string
+        email:
+          type: string
+
+    Invoice:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        maturity:
+          type: string
+          format: date
+        customerId:
+          type: string
+
+    Part:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        name:
+          type: string
+        price:
+          type: string
+        partNumber:
+          type: string
+        description:
+          type: string
+
+    ServiceRecord:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        accepted:
+          type: string
+          format: date
+        description:
+          type: string
+        kmCount:
+          type: string
+        invoiceId:
+          type: string
+        acceptedId:
+          type: string
+          note: id of technicain who accepted this service
